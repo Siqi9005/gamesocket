@@ -1,44 +1,30 @@
-const port = process.env.PORT || 10010;
+const port = process.env.PORT || 10009;
 const server= require("http").Server();
 
 var io = require("socket.io")(server);
-var allRooms ={};
+
+var usernames = [];
+
 io.on("connection", function(socket){
+    console.log("someone is connected");
+    
+    
+  socket.on("username", function(data){
+        console.log("user is giving username:"+data);
+        usernames.push(data);
+        
+        io.emit("usersjoined", usernames);
+        
+    })
     
     socket.on("joinroom", function(data){
         socket.join(data);
-        socket.myRoom = data;
         
-        if(!allRooms[data]){
-            allRooms[data] ={
-                users:[],
-                q:{}
-            
-            };
-            
-        }
-        console.log(data, "joinroom");
     });
     
-    socket.on("qsubmit", function(data){
-        //tell everybody there's a new question
-        console.log(data);
-        allRooms[socket.myRoom].q =data;
-        socket.to(socket.myRoom).emit("newq", data);     
-    });
-    
-    socket.on("answer", function(data){
-              var msg = "wrong!"
-              if(allRooms[socket.myRoom].q.a == data){
-                    msg = "you got it!";
-              
-              }
-              
-                socket.emit("result",msg)
-              });
-    
+   
     socket.on("disconnect", function(){
-        
+        console.log("user has disconnected");
     });
 });
 
